@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  nova-server-openresty:
+    image: nova-server-openresty:latest
+    build:
+      context: ./Openresty
+      dockerfile: ./Dockerfile
+    container_name: nova-server-openresty
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./OpenResty/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:ro
+      - ./OpenResty/conf.d:/usr/local/openresty/nginx/conf.d/:ro
+      - ./OpenResty/rules:/usr/local/openresty/luajit/share/lua/5.1/?/rules:ro
+      - ../wwwroot:/usr/local/openresty/nginx/html:ro
+      - ../wwwlog/OpenResty:/usr/local/openresty/nginx/logs
+    environment:
+      - TZ=Asia/Shanghai # 设置时区
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+    restart: always
+    depends_on:
+      - nova-server-redis
+
+  nova-server-redis:
+    container_name: nova-server-redis
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - ../wwwdata/Redis:/data
+    restart: always  
